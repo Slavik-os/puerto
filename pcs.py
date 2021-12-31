@@ -5,7 +5,8 @@ import json
 import threading
 import time
 import os
-from pprint import *
+from pprint import pprint
+import base64
 from distutils.dir_util import copy_tree
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -17,8 +18,6 @@ url = 'https://app.tangermedpcs.ma/'
 class Program :
 	def __init__(self,master):
 		self.master = master
-		# status = Entry(self.master,text='.......')
-		# status.grid(row=0,column=1,ipadx=40,ipady=10,padx=10, pady=10)
 
 		s_y_label = Label(self.master,text='Début-années :').grid(row=1)
 		s_y_entry = Entry(self.master,text='')
@@ -53,10 +52,6 @@ class Program :
 		submit = Button(self.master,text='Submit',command=lambda:getJson(s_y_entry.get(),s_m_entry.get(),s_d_entry.get(),e_y_entry.get(),e_m_entry.get(),e_d_entry.get()))
 		submit.grid(row=8,column=1,ipadx=2,padx=10,pady=10)
 
-		status = Label(self.master,text='Status : ').grid(row=9)
-
-		status_input = Entry(self.master,text='.......')
-		status_input.grid(row=9,column=1,ipadx=40,ipady=10,padx=10, pady=10)
 
 		def auto_login(self,url,start_date,end_date):
 			driver = webdriver.Chrome(executable_path='chromedriver.exe') # Full Path for The Driver
@@ -65,10 +60,10 @@ class Program :
 
 			time.sleep(2)
 			username = driver.find_element_by_name('user')
-			username.send_keys('f.ennaim')
+			username.send_keys(base64.b64decode('dXNlcm5hbWVfaGVyZQ==').decode('utf-8'))
 			time.sleep(1)
-			username = driver.find_element_by_name('password')
-			username.send_keys('ACHATS2021')
+			password = driver.find_element_by_name('password')
+			password.send_keys(base64.b64decode('cGFzc3dvcmRfaGVyZQ==').decode('utf-8'))
 			time.sleep(2)
 			driver.find_element_by_css_selector('.buttonRipples').click()
 			# end login
@@ -79,6 +74,9 @@ class Program :
 			driver.get(f'https://app.tangermedpcs.ma/api/fatourati/factures/search?devise=MAD&num-unite=&type=FACTURE&num-rows=ALL&date-debut={start_date}&date-fin={end_date}&numRows=ALL&dateDebut=2021-10-12&dateFin=2021-10-14')
 			js = driver.find_element_by_tag_name('body').text
 			driver.close()
+			with open ('file.json','w') as js_file :
+				js_file.write(js)
+
 			with open ('file.json','r') as js_file :
 				data = json.load(js_file)['result']['factures']
 				os.chdir('test_folder')
@@ -87,8 +85,8 @@ class Program :
 				for d in data :
 					l.append(d['invoiceNumber'])
 					n.append(d['numService'])
-			print(len(l))
-			print(len(n))
+
+		
 					
 			z = []
 			for file in os.listdir(): # get files inside test_Folder 
@@ -111,7 +109,7 @@ class Program :
 					os.chdir(copy_folder)
 					copy_tree(f,copy_folder)
 					os.chdir(b)
-					pprint(os.getcwd())
+					pprint(os.getcwd())	
 			time.sleep(30)
 			
 		
